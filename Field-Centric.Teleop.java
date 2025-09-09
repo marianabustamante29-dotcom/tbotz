@@ -1,7 +1,8 @@
-/** for roadrunner/android studio
+ /** for roadrunner/android studio
  assuming we use the intake - belt - outtake robot system
  @author Anthony Kongoasa
     */
+// NEED TO CHANGE
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
