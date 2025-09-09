@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;  
 import com.qualcomm.robotcore.hardware.Servo;
 
-@TeleOp(name="Field Centric TeleOp RR (ResetYaw)", group="Drive")
+@TeleOp(name="Field Centric TeleOp")
 public class FieldCentricTeleOpRR_ResetYaw extends LinearOpMode {
 
     private MecanumDrive drive; 
