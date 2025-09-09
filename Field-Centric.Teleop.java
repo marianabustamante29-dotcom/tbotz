@@ -1,6 +1,7 @@
-//for roadrunner/android studio
-// assuming we use the intake - belt - outtake robot system
-
+/** for roadrunner/android studio
+ assuming we use the intake - belt - outtake robot system
+ @author Anthony Kongoasa
+    */
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
@@ -103,11 +104,18 @@ public class FieldCentricTeleOpRR_ResetYaw extends LinearOpMode {
           else if (gamepad1.dpad_down) {
             kick.setPosition(0.3); //reset (tune)
           }
-          double leftServoPos = leftRotater.getPosition();
-          double rightServoPos = rightRotater.getPosition();
           
-
-         
+//tune       
+if (gamepad2.y) { //outtake FAR 
+    leftRotater.setPosition(0.5); 
+    rightRotater.setPosition(0.5); 
+}
+else if (gamepad2.a) { //outtake NEAR //
+    leftRotater.setPosition(0.3); 
+    rightRotater.setPosition(0.7); 
+}
+double leftServoPos = leftRotater.getPosition();
+double rightServoPos = rightRotater.getPosition();
 
 if (gamepad1.left_bumper) { // move DOWN
     leftServoPos = Math.min(1.0, leftServoPos + 0.2);
@@ -120,6 +128,7 @@ if (gamepad1.left_bumper) { // move DOWN
 // Update servo positions
 leftRotater.setPosition(leftServoPos);
 rightRotater.setPosition(rightServoPos);
+            
           
             
 
