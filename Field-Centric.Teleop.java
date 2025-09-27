@@ -101,7 +101,9 @@ public class FieldCentricTeleOpRR_ResetYaw extends LinearOpMode {
             ARM_SPEED = 0.7;
             armPos -= gamepad1.left_trigger * 10;
         }
-        
+        tilt.setTargetPosition(armPos);
+        ///tilt.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        tilt.setPower(ARM_SPEED);
           //outtake
          
           if (gamepad1.a) {
@@ -117,9 +119,7 @@ public class FieldCentricTeleOpRR_ResetYaw extends LinearOpMode {
           else if (gamepad1.dpad_down) {
             kick.setPosition(0.3); //reset (tune)
           }
-        tilt.setTargetPosition(armPos);
-        tilt.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        tilt.setPower(ARM_SPEED);
+       
           
 //tun CAREFULLY   
 
