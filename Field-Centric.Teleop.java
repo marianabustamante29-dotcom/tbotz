@@ -17,7 +17,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 @TeleOp(name="Field Centric TeleOp (School IMU)", group="Drive")
-public class FieldCentricTeleOpRR_ResetYaw extends LinearOpMode {
+public class FieldCentricTeleOp extends LinearOpMode {
 
     // Hardware
     private IMU imu;
