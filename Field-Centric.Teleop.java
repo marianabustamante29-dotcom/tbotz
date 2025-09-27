@@ -1,6 +1,6 @@
 /**
- * Field Centric TeleOp with Road Runner + IMU Reset
- * Example robot: intake - belt - outtake system
+ * Field-Centric TeleOp with Road Runner + IMU Reset
+ * Robot: intake - belt - tilt - outtake - kick system
  * Author: Anthony Kongoasa
  */
 
@@ -13,23 +13,22 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
-@TeleOp(name="Field Centric TeleOp")
+@TeleOp(name="Field Centric TeleOp (School IMU)", group="Drive")
 public class FieldCentricTeleOpRR_ResetYaw extends LinearOpMode {
 
+    // Hardware
     private IMU imu;
-    private DcMotor outtake;
-    private DcMotor tilt;
-    private DcMotor belt;
-    private DcMotor intake;
+    private DcMotor outtake, tilt, belt, intake;
     private Servo kick;
 
-    private int armPos = 0;          // encoder target for tilt motor
-    private double ARM_SPEED = 0.0;  // motor speed for tilt
+    // Arm control fields
+    private int armPos = 0;
+    private double ARM_SPEED = 0.0;
 
+    // Deadzone helper
     private double applyDeadzone(double value, double dz) {
         return Math.abs(value) < dz ? 0.0 : value;
     }
@@ -42,20 +41,19 @@ public class FieldCentricTeleOpRR_ResetYaw extends LinearOpMode {
 
         // Hardware init
         outtake = hardwareMap.get(DcMotor.class, "outtake");
+        tilt = hardwareMap.get(DcMotor.class, "tilt");
         belt = hardwareMap.get(DcMotor.class, "belt");
         intake = hardwareMap.get(DcMotor.class, "intake");
-        tilt = hardwareMap.get(DcMotor.class, "tilt");
         kick = hardwareMap.get(Servo.class, "kick");
 
-        // IMU setup with REV Hub orientation
+        // IMU init 
         imu = hardwareMap.get(IMU.class, "imu");
-        IMU.Parameters parameters = new IMU.Parameters(
+        RevHubOrientationOnRobot orientationOnRobot =
                 new RevHubOrientationOnRobot(
                         RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                        RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
-                )
-        );
-        imu.initialize(parameters);
+                        RevHubOrientationOnRobot.UsbFacingDirection.LEFT
+                );
+        imu.initialize(new IMU.Parameters(orientationOnRobot));
 
         // Motor modes
         belt.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -68,16 +66,16 @@ public class FieldCentricTeleOpRR_ResetYaw extends LinearOpMode {
 
         while (opModeIsActive()) {
 
-            // Current heading (yaw)
+            // Get current heading
             YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
-            double heading = orientation.getYaw(AngleUnit.RADIANS);
+            double heading = orientation.getYaw(org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS);
 
-            // Joysticks
+            // Joystick inputs
             double y = -gamepad1.left_stick_y; // forward/back
             double x = gamepad1.left_stick_x;  // strafe
-            double rx = gamepad1.right_stick_x; // rotate
+            double rx = gamepad1.right_stick_x; // rotation
 
-            // Deadzones
+            // Deadzone
             y = applyDeadzone(y, 0.05);
             x = applyDeadzone(x, 0.05);
             rx = applyDeadzone(rx, 0.05);
@@ -88,28 +86,32 @@ public class FieldCentricTeleOpRR_ResetYaw extends LinearOpMode {
             double rotX = x * cos - y * sin;
             double rotY = x * sin + y * cos;
 
-            // Road Runner drive power
+            // Drive
             drive.setDrivePowers(new PoseVelocity2d(new Vector2d(rotX, rotY), rx));
             drive.update();
 
-            // Reset yaw with Y
+            // Reset yaw
             if (gamepad1.y) {
                 imu.resetYaw();
             }
 
-            // Intake
-            double inPower = gamepad2.right_trigger - gamepad2.left_trigger;
-            intake.setPower(inPower);
+            // Intake / belt
+            double intakePower = gamepad2.right_trigger - gamepad2.left_trigger;
+            intake.setPower(intakePower);
 
-            // Arm tilt (RUN_TO_POSITION)
-            double armMotorPower = gamepad1.right_trigger - gamepad1.left_trigger;
-            if (armMotorPower > 0.1) {
+            // Arm tilt
+            double armPower = gamepad1.right_trigger - gamepad1.left_trigger;
+            if (armPower > 0.1) {
                 ARM_SPEED = 0.7;
                 armPos += 10; // adjust step size
-            } else if (armMotorPower < -0.1) {
+            } else if (armPower < -0.1) {
                 ARM_SPEED = 0.7;
                 armPos -= 10;
             }
+
+            // Clamp armPos to prevent over-extension
+            armPos = Math.max(0, Math.min(armPos, 1000)); // replace 1000 with your max encoder ticks
+
             tilt.setTargetPosition(armPos);
             tilt.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             tilt.setPower(ARM_SPEED);
@@ -121,7 +123,7 @@ public class FieldCentricTeleOpRR_ResetYaw extends LinearOpMode {
                 outtake.setPower(0);
             }
 
-            // Kicker servo
+            // Kick servo
             if (gamepad1.dpad_up) {
                 kick.setPosition(0.8);
             } else if (gamepad1.dpad_down) {
@@ -130,7 +132,7 @@ public class FieldCentricTeleOpRR_ResetYaw extends LinearOpMode {
 
             // Telemetry
             telemetry.addData("Heading (rad)", heading);
-            telemetry.addData("Arm target", armPos);
+            telemetry.addData("Arm target ticks", armPos);
             telemetry.update();
         }
     }
