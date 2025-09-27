@@ -17,12 +17,11 @@ public class FieldCentricTeleOpRR_ResetYaw extends LinearOpMode {
 
     private MecanumDrive drive; 
     private IMU imu; 
-    private DcMotor leftOut;
-    private DcMotor rightOut;
+    private DcMotor outtake;
+    private DcMotor tilt;
     private DcMotor belt;
     private DcMotor intake;
-    private Servo leftRotater;
-    private Servo rightRotater;
+  
     private Servo kick; 
     
   
@@ -35,20 +34,23 @@ public class FieldCentricTeleOpRR_ResetYaw extends LinearOpMode {
   
         // Initialize 
         drive = new MecanumDrive(hardwareMap);
-        leftOut = hardwareMap.get(DcMotor.class, "leftOut");
-        rightOut = hardwareMap.get(DcMotor.class, "rightOut");
+        outtake = hardwareMap.get(DcMotor.class, "outtake");
+       
         belt = hardwareMap.get(DcMotor.class, "belt");
         intake = hardwareMap.get(DcMotor.class, "intake");
-        leftRotater = hardwareMap.get(Servo.class, "leftRotater");
-        rightRotater = hardwareMap.get(Servo.class, "rightRotater");
+        tilt = hardwareMap.get(DcMotor.class, "tilt");
         kick = hardwareMap.get(Servo.class, "kick");
-
+        
         // Initialize IMU
         imu = hardwareMap.get(IMU.class, "imu");
         IMU.Parameters imuParams = new IMU.Parameters();
         imuParams.angleUnit = AngleUnit.RADIANS;
         imu.initialize(imuParams);
-
+        belt.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        outtake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        tilt.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        tilt.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         waitForStart();
 
         while (opModeIsActive()) {
@@ -86,18 +88,28 @@ public class FieldCentricTeleOpRR_ResetYaw extends LinearOpMode {
            if (gamepad1.y) {
                 imu.resetYaw(); // reset field-centric
             }
-          double inPower = gamepad1.right_trigger - gamepad1.left_trigger; // intake
+          double inPower = gamepad2.right_trigger - gamepad2.left_trigger; // intake
           intake.setPower(inPower);
+         double armMotorPower = gamepad1.right_trigger - gamepad1.left_trigger;
+        // Limit Power to -0.4 to 0.4
+        if (armMotorPower > 0.1) {
+            ARM_SPEED = 0.7;
+            armPos += gamepad1.right_trigger * 10;
+        }
 
+        if (armMotorPower < -0.1) {
+            ARM_SPEED = 0.7;
+            armPos -= gamepad1.left_trigger * 10;
+        }
+        
           //outtake
-
+         
           if (gamepad1.a) {
-            leftOut.setPower(1.0); //may need to reverse either or none at all
-            rightOut.setPower(-1.0);
+            outtake.setPower(1.0); //may need to reverse  
+            
           } 
           else {
-            leftOut.setPower(0);
-            rightOut.setPower(0);
+            outtake.setPower(0);
           }
           if (gamepad1.dpad_up) {
             kick.setPosition(0.8); //kick (tune)
@@ -105,33 +117,12 @@ public class FieldCentricTeleOpRR_ResetYaw extends LinearOpMode {
           else if (gamepad1.dpad_down) {
             kick.setPosition(0.3); //reset (tune)
           }
+        tilt.setTargetPosition(armPos);
+        tilt.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        tilt.setPower(ARM_SPEED);
           
-//tune       
-if (gamepad2.y) { //outtake FAR 
-    leftRotater.setPosition(0.5); 
-    rightRotater.setPosition(0.5); 
-}
-else if (gamepad2.a) { //outtake NEAR //
-    leftRotater.setPosition(0.3); 
-    rightRotater.setPosition(0.7); 
-}
-double leftServoPos = leftRotater.getPosition();
-double rightServoPos = rightRotater.getPosition();
+//tun CAREFULLY   
 
-if (gamepad1.left_bumper) { // move DOWN
-    leftServoPos = Math.min(1.0, leftServoPos + 0.2);
-    rightServoPos = Math.max(0.0, rightServoPos - 0.2); // mirrored
-} else if (gamepad1.right_bumper) { // move UP
-    leftServoPos = Math.max(0.0, leftServoPos - 0.2);
-    rightServoPos = Math.min(1.0, rightServoPos + 0.2); // mirrored
-}
-
-// Update servo positions
-leftRotater.setPosition(leftServoPos);
-rightRotater.setPosition(rightServoPos);
-            
-          
-            
 
 
           
