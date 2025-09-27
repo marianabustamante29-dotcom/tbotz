@@ -3,25 +3,28 @@
  @author Anthony Kongoasa
     */
 // NEED TO CHANGE
+import com.acmerobotics.roadrunner.PoseVelocity2d;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.robotcore.hardware.IMU;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.MecanumDrive;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;  
 import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp(name="Field Centric TeleOp")
 public class FieldCentricTeleOpRR_ResetYaw extends LinearOpMode {
 
-    private MecanumDrive drive; 
+
     private IMU imu; 
     private DcMotor outtake;
     private DcMotor tilt;
     private DcMotor belt;
     private DcMotor intake;
-  
+
     private Servo kick; 
     
   
@@ -33,7 +36,7 @@ public class FieldCentricTeleOpRR_ResetYaw extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
   
         // Initialize 
-        drive = new MecanumDrive(hardwareMap);
+        MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
         outtake = hardwareMap.get(DcMotor.class, "outtake");
        
         belt = hardwareMap.get(DcMotor.class, "belt");
@@ -44,7 +47,7 @@ public class FieldCentricTeleOpRR_ResetYaw extends LinearOpMode {
         // Initialize IMU
         imu = hardwareMap.get(IMU.class, "imu");
         IMU.Parameters imuParams = new IMU.Parameters();
-        imuParams.angleUnit = AngleUnit.RADIANS;
+        imuParams.AngleUnit = AngleUnit.RADIANS;
         imu.initialize(imuParams);
         belt.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -75,7 +78,7 @@ public class FieldCentricTeleOpRR_ResetYaw extends LinearOpMode {
             double rotY = x * sin + y * cos;
 
             // Send to Road Runner drive
-            drive.setDrivePower(new Pose2d(rotY, rotX, rx));
+            drive.setDrivePowers(new PoseVelocity2d(new Vector2d(rotX, rotY), rx));
 
             // Update drive
             drive.update();
@@ -92,6 +95,7 @@ public class FieldCentricTeleOpRR_ResetYaw extends LinearOpMode {
           intake.setPower(inPower);
          double armMotorPower = gamepad1.right_trigger - gamepad1.left_trigger;
         // Limit Power to -0.4 to 0.4
+
         if (armMotorPower > 0.1) {
             ARM_SPEED = 0.7;
             armPos += gamepad1.right_trigger * 10;
