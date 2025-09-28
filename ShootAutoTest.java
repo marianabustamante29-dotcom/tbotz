@@ -1,6 +1,7 @@
-// AutoShootRR_Actions.java
-// Road Runner autonomous: shoot 3x, then park.
-
+/**
+ * Author: Anthony Kongoasa
+ * Gets into position and Shoots 3 artifacts 
+ */
 package org.firstinspires.ftc.teamcode.opmode.auto;
 
 import com.acmerobotics.roadrunner.Pose2d;
@@ -34,17 +35,36 @@ public class ShootAutoTest extends LinearOpMode {
         waitForStart();
         if (isStopRequested()) return;
 
-       Actions.runBlocking((
+       Actions.runBlocking(
                     drive.actionBuilder(new Pose2d(0, 0, 0))
-                            .linetoY(5)
+                            .linetoX(5)
                             .turn(Math.toRadians(50))
                             .build();
-            ));
+            );
         
         // Shoot 3
         shoot();
 
-      
+/**
+     Actions.runBlocking(
+                    drive.actionBuilder(drive.pose)
+                            .splineTo(new Vector2d(20, -20), Math.toRadians(90))
+                            .build();
+            );
+     intake.setPower(1);
+     Actions.runBlocking( //intake pile
+                    drive.actionBuilder(drive.pose)
+                            .lineToY(-30)
+                            .splineTo(new Vector2d(5, 0), Math.toRadians(50))
+                            .build();
+            );
+    intake.setPower(0);
+    shoot();
+  
+
+            
+*/      
+belt.setPower(0);
         
 
         telemetry.addLine("Auto finished");
