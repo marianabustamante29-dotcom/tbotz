@@ -34,7 +34,7 @@ public class ShootAutoTest extends LinearOpMode {
 
         waitForStart();
         if (isStopRequested()) return;
-
+        belt.setPower(0.6);
        Actions.runBlocking(
                     drive.actionBuilder(new Pose2d(0, 0, 0))
                             .linetoX(5)
@@ -76,10 +76,11 @@ belt.setPower(0);
     // Spin up shooter
     outtake.setPower(1.0);
     sleep(2500); // allow shooter to get to speed
-
-     kick.setPosition(0.8)
-    sleep(2000);
+    belt.setPower(1) // fast to push the artifact in
+     kick.setPosition(0.8) //open
+    sleep(2500);
     kick.setPosition(0.3); //close
+    belt.setPower(0.6);
     // Turn off shooter after firing
     outtake.setPower(0);
   }
