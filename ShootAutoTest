@@ -1,0 +1,66 @@
+// AutoShootRR_Actions.java
+// Road Runner autonomous: shoot 3x, then park.
+
+package org.firstinspires.ftc.teamcode.opmode.auto;
+
+import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.Vector2d;
+import com.acmerobotics.roadrunner.trajectorysequence.TrajectoryActionBuilder;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.teamcode.MecanumDrive;
+import org.firstinspires.ftc.teamcode.trajectorysequence.Actions;
+
+@Autonomous(name = "Shoot Auto", group = "Auto")
+public class ShootAutoTest extends LinearOpMode {
+    private DcMotor outtake, belt, intake, tilt;
+    private Servo kick;
+    private MecanumDrive drive;
+    
+
+    @Override
+    public void runOpMode() throws InterruptedException {
+        // Initialize hardware
+        drive   = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
+        outtake = hardwareMap.get(DcMotor.class, "outtake");
+        intake = hardwareMap.get(DcMotor.class, "outtake");
+        belt    = hardwareMap.get(DcMotor.class, "belt");
+        kick    = hardwareMap.get(Servo.class, "kick");
+        tilt    = hardwareMap.get(Servo.class, "tilt");
+
+        waitForStart();
+        if (isStopRequested()) return;
+
+       Actions.runBlocking((
+                    drive.actionBuilder(new Pose2d(0, 0, 0))
+                            .linetoY(5)
+                            .turn(Math.toRadians(50))
+                            .build();
+            ));
+        
+        // Shoot 3
+        shoot();
+
+      
+        
+
+        telemetry.addLine("Auto finished");
+        telemetry.update();
+        sleep(2000);
+    }
+
+    private void shoot() throws InterruptedException {
+    // Spin up shooter
+    outtake.setPower(1.0);
+    sleep(2500); // allow shooter to get to speed
+
+     kick.setPosition(0.8)
+    sleep(2000);
+    kick.setPosition(0.3); //close
+    // Turn off shooter after firing
+    outtake.setPower(0);
+  }
+}
