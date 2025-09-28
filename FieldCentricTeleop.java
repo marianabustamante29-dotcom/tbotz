@@ -22,7 +22,7 @@ public class FieldCentricTeleOp extends LinearOpMode {
     // Hardware
     private IMU imu;
     private DcMotor outtake, tilt, belt, intake;
-    private Servo kick;
+    private Servo kick; // TODO rename to gate?
 
     // Arm control fields
     private int armPos = 0;
@@ -45,6 +45,7 @@ public class FieldCentricTeleOp extends LinearOpMode {
         belt = hardwareMap.get(DcMotor.class, "belt");
         intake = hardwareMap.get(DcMotor.class, "intake");
         kick = hardwareMap.get(Servo.class, "kick");
+        kick.setPosition(0.8); //close
 
         // IMU init 
         imu = hardwareMap.get(IMU.class, "imu");
@@ -65,6 +66,7 @@ public class FieldCentricTeleOp extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
+            belt.setPower(0.5);
 
             // Get current heading
             YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
@@ -73,7 +75,7 @@ public class FieldCentricTeleOp extends LinearOpMode {
             // Joystick inputs
             double y = -gamepad1.left_stick_y; // forward/back
             double x = gamepad1.left_stick_x;  // strafe
-            double rx = gamepad1.right_stick_x; // rotation
+            double rx = gamepad1.right_stick_x; // turn
 
             // Deadzone
             y = applyDeadzone(y, 0.05);
@@ -95,7 +97,7 @@ public class FieldCentricTeleOp extends LinearOpMode {
                 imu.resetYaw();
             }
 
-            // Intake / belt
+            // Intake 
             double intakePower = gamepad2.right_trigger - gamepad2.left_trigger;
             intake.setPower(intakePower);
 
@@ -116,18 +118,25 @@ public class FieldCentricTeleOp extends LinearOpMode {
             tilt.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             tilt.setPower(ARM_SPEED);
 
-            // Outtake
-            if (gamepad1.a) {
-                outtake.setPower(1.0);
-            } else {
+            // Shoot
+           
+            if (gamepad1.x) {
+                outtake.setPower(1);
+            }
+            else {
                 outtake.setPower(0);
             }
-
-            // Kick servo
+            
             if (gamepad1.dpad_up) {
-                kick.setPosition(0.8);
+                
+                kick.setPosition(0.8);  //open
+                belt.setPower(1); //push
+            }
+                
             } else if (gamepad1.dpad_down) {
-                kick.setPosition(0.3);
+               
+                kick.setPosition(0.3); // close
+                belt.setPower(0.6);
             }
 
             // Telemetry
