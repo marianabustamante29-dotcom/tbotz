@@ -27,7 +27,7 @@ public class ShootAutoTest extends LinearOpMode {
         // Initialize hardware
         drive   = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
         outtake = hardwareMap.get(DcMotor.class, "outtake");
-        intake = hardwareMap.get(DcMotor.class, "outtake");
+        intake = hardwareMap.get(DcMotor.class, "intake");
         belt    = hardwareMap.get(DcMotor.class, "belt");
         kick    = hardwareMap.get(Servo.class, "kick");
         tilt    = hardwareMap.get(Servo.class, "tilt");
@@ -76,8 +76,8 @@ belt.setPower(0);
     // Spin up shooter
     outtake.setPower(1.0);
     sleep(2500); // allow shooter to get to speed
-    belt.setPower(1) // fast to push the artifact in
-     kick.setPosition(0.8) //open
+    belt.setPower(1); // fast to push the artifact in
+     kick.setPosition(0.8); //open
     sleep(2500);
     kick.setPosition(0.3); //close
     belt.setPower(0.6);
