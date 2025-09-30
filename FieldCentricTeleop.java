@@ -22,12 +22,19 @@ public class FieldCentricTeleOp extends LinearOpMode {
 
     // Hardware
     private IMU imu;
-    private DcMotor outtake, tilt, belt, intake;
+    private DcMotor belt, intake;
+    private DcMotorEx outtake, tilt;
+    
     private Servo kick; // TODO rename to gate?
 
     // Arm control fields
+    private double targetVel;
     private int armPos = 0;
     private double ARM_SPEED = 0.0;
+    private boolean shooterRunning = false; 
+    private boolean xLast = false;           // was X pressed last loop?
+    private boolean reachedTarget = false;
+
 
     // Deadzone helper
     private double applyDeadzone(double value, double dz) {
@@ -41,8 +48,8 @@ public class FieldCentricTeleOp extends LinearOpMode {
         MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
 
         // Hardware init
-        outtake = hardwareMap.get(DcMotor.class, "outtake");
-        tilt = hardwareMap.get(DcMotor.class, "tilt");
+        outtake = hardwareMap.get(DcMotorEx.class, "outtake");
+        tilt = hardwareMap.get(DcMotorEx.class, "tilt");
         belt = hardwareMap.get(DcMotor.class, "belt");
         intake = hardwareMap.get(DcMotor.class, "intake");
         kick = hardwareMap.get(Servo.class, "kick");
@@ -60,7 +67,8 @@ public class FieldCentricTeleOp extends LinearOpMode {
         // Motor modes
         belt.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        outtake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        outtake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+      
         tilt.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         tilt.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
@@ -121,20 +129,32 @@ public class FieldCentricTeleOp extends LinearOpMode {
 
             // Shoot
            
-            if (gamepad1.x) {
-                outtake.setPower(1);
+            boolean xNow = gamepad1.x; //basically if 
+
+            // Detect rising edge (press just happened)
+            if (xNow && !xLast) {
+                shooterRunning = !shooterRunning;  // toggle shooter state
             }
-            else {
-                outtake.setPower(0);
+
+                xLast = xNow; 
+                // Apply shooter power if running
+            if (shooterRunning) {
+                targetVel = 2000;
+                outtake.setVelocity(targetVel); // or your target RPM
+                if (Math.abs(outtake.getVelocity() - targetVel) < 50) {
+                    reachedTarget = true;
+                }
+            } else {
+                reachedTarget = false;
+                outtake.setVelocity(0);
             }
             
-            if (gamepad1.dpad_up) {
-                
+            if (gamepad1.dpad_up && reachedTarget) {
                 kick.setPosition(0.8);  //open
-                belt.setPower(1); //push
+                belt.setPower(0.9); //push
             }
                 
-            } else if (gamepad1.dpad_down) {
+            else if (gamepad1.dpad_down) {
                
                 kick.setPosition(0.3); // close
                 belt.setPower(0.6);
@@ -143,6 +163,8 @@ public class FieldCentricTeleOp extends LinearOpMode {
             // Telemetry
             telemetry.addData("Heading (rad)", heading);
             telemetry.addData("Arm target ticks", armPos);
+             telemetry.addData("ActualVel", outtake.getVelocity());
+            telemetry.addData("TargetVel", targetVel);
             telemetry.update();
         }
     }
