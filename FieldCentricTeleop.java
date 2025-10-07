@@ -53,7 +53,7 @@ public class FieldCentricTeleOp extends LinearOpMode {
         belt = hardwareMap.get(DcMotor.class, "belt");
         intake = hardwareMap.get(DcMotor.class, "intake");
         kick = hardwareMap.get(Servo.class, "kick");
-        kick.setPosition(0.8); //close
+        kick.setPosition(0.8); //up
 
         // IMU init 
         imu = hardwareMap.get(IMU.class, "imu");
@@ -150,14 +150,14 @@ public class FieldCentricTeleOp extends LinearOpMode {
             }
             
             if (gamepad1.dpad_up && reachedTarget) {
-                kick.setPosition(0.8);  //open
-                belt.setPower(0.9); //push
+                kick.setPosition(0.8);  //up
+                
             }
                 
             else if (gamepad1.dpad_down) {
                
-                kick.setPosition(0.3); // close
-                belt.setPower(0.6);
+                kick.setPosition(0.3); // kick
+                
             }
 
             // Telemetry
