@@ -1,9 +1,10 @@
 /**
- * Field-Centric TeleOp with Road Runner + IMU Reset
- * Robot: intake - belt - tilt - outtake - kick system
+ * Field-Centric TeleOp with Road Runner + IMU + AprilTag Alignment
+ * Robot: intake - belt - dual outtakes - kick system
  * Author: Anthony Kongoasa
- * need to  tune RR before I can test
  */
+
+package org.firstinspires.ftc.teamcode.opmode.teleop;
 
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -11,30 +12,37 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
-@TeleOp(name="Field Centric TeleOp (School IMU)", group="Drive")
+import java.util.List;
+
+@TeleOp(name="Field Centric TeleOp (IMU + AprilTag)", group="Drive")
 public class FieldCentricTeleOp extends LinearOpMode {
 
     // Hardware
     private IMU imu;
     private DcMotor belt, intake;
-    private DcMotorEx outtake, tilt;
-    
-    private Servo kick; // TODO rename to gate?
+    private DcMotorEx leftShooter, rightShooter;
+    private Servo kick;
 
-    // Arm control fields
-    private double targetVel;
-    private int armPos = 0;
-    private double ARM_SPEED = 0.0;
-    private boolean shooterRunning = false; 
-    private boolean xLast = false;           // was X pressed last loop?
+    // Shooter control
+    private boolean shooterRunning = false;
+    private boolean xLast = false;
     private boolean reachedTarget = false;
+    //private double targetVel = 2000; // Target RPM
+    private final double SHOOTER_TOLERANCE = 50;
 
+    // Vision
+    private VisionPortal visionPortal;
+    private AprilTagProcessor aprilTag;
 
     // Deadzone helper
     private double applyDeadzone(double value, double dz) {
@@ -44,18 +52,18 @@ public class FieldCentricTeleOp extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
 
-        // Road Runner drive
+        // Initialize Road Runner drive
         MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
 
         // Hardware init
-        outtake = hardwareMap.get(DcMotorEx.class, "outtake");
-        tilt = hardwareMap.get(DcMotorEx.class, "tilt");
+        leftShooter = hardwareMap.get(DcMotorEx.class, "leftShooter");
+        rightShooter = hardwareMap.get(DcMotorEx.class, "rightShooter");
         belt = hardwareMap.get(DcMotor.class, "belt");
         intake = hardwareMap.get(DcMotor.class, "intake");
         kick = hardwareMap.get(Servo.class, "kick");
-        kick.setPosition(0.8); //up
+        kick.setPosition(0.8); // up/closed
 
-        // IMU init 
+        // IMU init
         imu = hardwareMap.get(IMU.class, "imu");
         RevHubOrientationOnRobot orientationOnRobot =
                 new RevHubOrientationOnRobot(
@@ -67,24 +75,28 @@ public class FieldCentricTeleOp extends LinearOpMode {
         // Motor modes
         belt.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        outtake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-      
-        tilt.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        tilt.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftShooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightShooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        // Vision init
+        aprilTag = new AprilTagProcessor.Builder().build();
+        visionPortal = new VisionPortal.Builder()
+                .setCamera(hardwareMap.get(com.qualcomm.robotcore.hardware.WebcamName.class, "Webcam 1"))
+                .addProcessor(aprilTag)
+                .build();
 
         waitForStart();
 
         while (opModeIsActive()) {
-            belt.setPower(0.5);
 
-            // Get current heading
+            // Get IMU heading
             YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
             double heading = orientation.getYaw(org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS);
 
             // Joystick inputs
-            double y = -gamepad1.left_stick_y; // forward/back
-            double x = gamepad1.left_stick_x;  // strafe
-            double rx = gamepad1.right_stick_x; // turn
+            double y = -gamepad1.left_stick_y;
+            double x = gamepad1.left_stick_x;
+            double rx = gamepad1.right_stick_x;
 
             // Deadzone
             y = applyDeadzone(y, 0.05);
@@ -97,74 +109,67 @@ public class FieldCentricTeleOp extends LinearOpMode {
             double rotX = x * cos - y * sin;
             double rotY = x * sin + y * cos;
 
-            // Drive
+            // Auto-align to AprilTag if left bumper held
+            if (gamepad1.left_bumper) {
+                AprilTagDetection targetTag = null;
+                List<AprilTagDetection> detections = aprilTag.getDetections();
+                for (AprilTagDetection det : detections) {
+                    if (det.metadata != null) {
+                        targetTag = det;
+                        break;
+                    }
+                }
+                if (targetTag != null) {
+                    // adjust rotation based on tag bearing
+                    rx = targetTag.ftcPose.bearing * 0.01; // tune gain
+                    rx = Math.max(-0.5, Math.min(0.5, rx)); // smooth clipping
+                }
+            }
+
+            // Send drive powers to Road Runner
             drive.setDrivePowers(new PoseVelocity2d(new Vector2d(rotX, rotY), rx));
-            drive.update();
+            drive.updatePoseEstimate();
+
+            // Intake control
+            if (gamepad1.a) intake.setPower(0.8);
+            else intake.setPower(0);
+
+            // Shooter toggle
+            boolean xNow = gamepad1.x;
+            if (xNow && !xLast) shooterRunning = !shooterRunning;
+            xLast = xNow;
+
+            if (shooterRunning) {
+                leftShooter.setVelocity(targetVel);
+                rightShooter.setVelocity(-targetVel); // reversed
+                // check if velocity reached
+                reachedTarget = Math.abs(leftShooter.getVelocity() - targetVel) < SHOOTER_TOLERANCE;
+            } else {
+                leftShooter.setVelocity(0);
+                rightShooter.setVelocity(0);
+                reachedTarget = false;
+            }
+
+            // Kick control
+            if (gamepad1.dpad_up && reachedTarget) {
+                kick.setPosition(0.1); // up
+                belt.setPower(1.0);    // push
+            } else if (gamepad1.dpad_down) {
+                kick.setPosition(0.3); // down/kick
+                belt.setPower(0.6);
+            } else {
+                belt.setPower(0);
+            }
 
             // Reset yaw
-            if (gamepad1.y) {
-                imu.resetYaw();
-            }
-
-            // Intake 
-            double intakePower = gamepad2.right_trigger - gamepad2.left_trigger;
-            intake.setPower(intakePower);
-
-            // Arm tilt
-            double armPower = gamepad1.right_trigger - gamepad1.left_trigger;
-            if (armPower > 0.1) {
-                ARM_SPEED = 0.7;
-                armPos += 10; // adjust step size
-            } else if (armPower < -0.1) {
-                ARM_SPEED = 0.7;
-                armPos -= 10;
-            }
-
-            // Clamp armPos to prevent over-extension
-            armPos = Math.max(0, Math.min(armPos, 1000)); // replace 1000 with your max encoder ticks
-
-            tilt.setTargetPosition(armPos);
-            tilt.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            tilt.setPower(ARM_SPEED);
-
-            // Shoot
-           
-            boolean xNow = gamepad1.x; //basically if 
-
-            // Detect rising edge (press just happened)
-            if (xNow && !xLast) {
-                shooterRunning = !shooterRunning;  // toggle shooter state
-            }
-
-                xLast = xNow; 
-                // Apply shooter power if running
-            if (shooterRunning) {
-                targetVel = 2000;
-                outtake.setVelocity(targetVel); // or your target RPM
-                if (Math.abs(outtake.getVelocity() - targetVel) < 50) {
-                    reachedTarget = true;
-                }
-            } else {
-                reachedTarget = false;
-                outtake.setVelocity(0);
-            }
-            
-            if (gamepad1.dpad_up && reachedTarget) {
-                kick.setPosition(0.8);  //up
-                
-            }
-                
-            else if (gamepad1.dpad_down) {
-               
-                kick.setPosition(0.3); // kick
-                
-            }
+            if (gamepad1.y) imu.resetYaw();
 
             // Telemetry
             telemetry.addData("Heading (rad)", heading);
-            telemetry.addData("Arm target ticks", armPos);
-             telemetry.addData("ActualVel", outtake.getVelocity());
+            telemetry.addData("LeftShooterVel", leftShooter.getVelocity());
+            telemetry.addData("RightShooterVel", rightShooter.getVelocity());
             telemetry.addData("TargetVel", targetVel);
+            telemetry.addData("ReachedTarget", reachedTarget);
             telemetry.update();
         }
     }
