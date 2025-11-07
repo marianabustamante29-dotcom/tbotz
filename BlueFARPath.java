@@ -1,6 +1,6 @@
 /**
  * Author: Anthony Kongoasa
- * Gets into position and Shoots 3 artifacts 
+ * Gets into position and intakes 8-9, shoots
  */
 package org.firstinspires.ftc.teamcode.opmode.auto;
 
@@ -10,27 +10,25 @@ import com.acmerobotics.roadrunner.trajectorysequence.TrajectoryActionBuilder;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
-
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.trajectorysequence.Actions;
 
 @Autonomous
-public class BluefarRRPath extends LinearOpMode {
+public class BluefarPath extends LinearOpMode {
     private DcMotor intake; // add others 
      // add servos
     private MecanumDrive drive;
-    
 
     @Override
     public void runOpMode() throws InterruptedException {
         // Initialize hardware
-        drive   = new MecanumDrive(hardwareMap, new Pose2d(0,0,0)); //facing backwards
+        drive   = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
         // change if wanted/needed
         //  drive = new MecanumDrive(hardwareMap, new Pose2d(61,-20,Math.toRadians(180));
         //something like that
         intake = hardwareMap.get(DcMotor.class, "intake");
-       
 
        //servos init HERE
         
@@ -43,11 +41,9 @@ public class BluefarRRPath extends LinearOpMode {
                             .turn(Math.toRadians(50)) //tune
                             .waitSeconds(3) //simulate shoot delay
                             .build()
-            );
-        
+            ); 
      
       //  shoot();
-     
 
     //-----------intake from Human player (likely only 2 artifacts) -------------
     intake.setPower(-1);
@@ -83,8 +79,7 @@ public class BluefarRRPath extends LinearOpMode {
                     drive.actionBuilder(drive.getPose())
                             .lineToY(-60)
                             .waitSeconds(0.5)
-                            .splineTo(new Vector2d(5, 0), Math.toRadians(50))
-                            .build()
+                            
             );
     intake.setPower(0);
      //-------------------------------return to SHOOT pose--------------------------
@@ -102,21 +97,12 @@ public class BluefarRRPath extends LinearOpMode {
                             .build()
 
         );
-      
-    
-   
 
-            
-    
-
-        
-
-        telemetry.addLine("");
-        telemetry.update();
         sleep(2000);
     }
 
-    private void shoot() throws InterruptedException {
-    
-  }
+  //  private void shoot() throws InterruptedException {
+
+
+  
 }
