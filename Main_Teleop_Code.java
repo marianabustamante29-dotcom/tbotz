@@ -43,7 +43,7 @@ public class Main_Teleop_Code extends OpMode {
     // for Camera
     // Adjust these numbers to suit your robot.
     double DESIRED_DISTANCE = 75; //  this is how close the camera should get to the target (inches)
-    double DESIRED_HEADING = 76.5; //  degrees this is how close the camera should get to the target (inches)
+    double DESIRED_HEADING = 0; //  degrees this is how close the camera should get to the target (inches)
     double DESIRED_YAW = 0.0; //  this is how close the camera should get to the target (inches)
 
     
@@ -52,7 +52,7 @@ public class Main_Teleop_Code extends OpMode {
     //  Drive = Error * Gain    Make these values smaller for smoother control, or larger for a more aggressive response.
     final double SPEED_GAIN  =  0.02  ;   //  Forward Speed Control "Gain". e.g. Ramp up to 50% power at a 25 inch error.   (0.50 / 25.0)
     final double STRAFE_GAIN =  0.015 ;   //  Strafe Speed Control "Gain".  e.g. Ramp up to 37% power at a 25 degree Yaw error.   (0.375 / 25.0)
-    final double TURN_GAIN   =  0.01  ;   //  Turn Control "Gain".  e.g. Ramp up to 25% power at a 25 degree error. (0.25 / 25.0)
+    final double TURN_GAIN   =  0.025  ;   //  Turn Control "Gain".  e.g. Ramp up to 25% power at a 25 degree error. (0.25 / 25.0)
 
     final double MAX_AUTO_SPEED = 0.5;   //  Clip the approach speed to this max value (adjust for your robot)
     final double MAX_AUTO_STRAFE= 0.5;   //  Clip the strafing speed to this max value (adjust for your robot)
@@ -66,8 +66,8 @@ public class Main_Teleop_Code extends OpMode {
     
     // Left Shooter PID
     private double NEW_P = 120;
-    private double NEW_I = 2;
-    private double NEW_D = 0;
+    private double NEW_I = 0;
+    private double NEW_D = 1.5;
     
     // Right Shooter PID
     //private double NEW_PR = 170;
@@ -76,6 +76,7 @@ public class Main_Teleop_Code extends OpMode {
     
     private int tagID;
     private double range;
+    private double heading;
     
      
     @Override
@@ -153,6 +154,7 @@ public class Main_Teleop_Code extends OpMode {
         if (currentDetections.size() < 1) {
             tagID = -1;
             range = -1; 
+            heading = -1;
         }
         for (AprilTagDetection detection : currentDetections) {
             // Look to see if we have size info on this tag.
@@ -164,6 +166,7 @@ public class Main_Teleop_Code extends OpMode {
                     desiredTag = detection;
                     tagID = desiredTag.id;
                     range = desiredTag.ftcPose.range;
+                    heading = desiredTag.ftcPose.bearing;
                     //telemetry.addData("Found", desiredTag.id);
                     //telemetry.addData("Range", desiredTag.ftcPose.range);
                     //telemetry.update();
@@ -180,27 +183,26 @@ public class Main_Teleop_Code extends OpMode {
             }
         }
         
-        if (gamepad1.left_bumper && targetFound) {
+         if (gamepad1.dpad_left && targetFound) {
             
 
             // Determine heading, range and Yaw (tag image rotation) error so we can use them to control the robot automatically.
             double  rangeError      = (desiredTag.ftcPose.range - DESIRED_DISTANCE);
-            double  headingError    = desiredTag.ftcPose.bearing;
+            double  headingError    = (desiredTag.ftcPose.bearing - DESIRED_HEADING);
             double  yawError        = desiredTag.ftcPose.yaw;
 
             // Use the speed and turn "gains" to calculate how we want the robot to move.
            // double leftY  = Range.clip(rangeError * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
             double rightX   = -Range.clip(headingError * TURN_GAIN, -MAX_AUTO_TURN, MAX_AUTO_TURN) ;
            // double leftX = Range.clip(-yawError * STRAFE_GAIN, -MAX_AUTO_STRAFE, MAX_AUTO_STRAFE);
-           double leftY = gamepad1.left_stick_y * SPEED_CONTROL;
-            double leftX = gamepad1.left_stick_x * SPEED_CONTROL;
+           double leftY = 0;
+            double leftX = 0;
             robot.driveStrafer(leftX, leftY, rightX);
             
             //double distance = desiredTag.ftcPose.range;
             
             //telemetry.addData("Auto","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
         }
-        
         else {
             double leftY = gamepad1.left_stick_y * SPEED_CONTROL;
             double leftX = gamepad1.left_stick_x * SPEED_CONTROL;
@@ -215,11 +217,11 @@ public class Main_Teleop_Code extends OpMode {
         }
        
         //shooter
-        if (gamepad1.dpad_left) {
-            SHOOTER_VELOCITY = -1150;
+        if (gamepad1.left_bumper) {
+            SHOOTER_VELOCITY = -1250;
         }
-        if (gamepad1.dpad_right) {
-            SHOOTER_VELOCITY = -1300;
+        if (gamepad1.right_bumper) {
+            SHOOTER_VELOCITY = -1400;
         }
         if (gamepad1.dpad_up) {
             SHOOTER_VELOCITY = 0;
@@ -238,30 +240,26 @@ public class Main_Teleop_Code extends OpMode {
         }
         else if (gamepad1.x) {
             robot.intake.setPower(1);
-            //robot.uptake.setPower(-.5);
             robot.leftUptake.setPosition(1);
             robot.rightUptake.setPosition(0);
             robot.leftHand.setPosition(1);
             robot.rightHand.setPosition(0);
         }
     
-        //no power
-        else {
-            robot.intake.setPower(0);
-            //robot.uptake.setPower(0);
-            robot.leftUptake.setPosition(0.5);
-            robot.rightUptake.setPosition(0.5);
-            robot.leftHand.setPosition(0);
-            robot.rightHand.setPosition(1);
-        }
         //feeder
-        if (gamepad1.b) {
+        else if (gamepad1.b) {
             robot.leftHand.setPosition(0);
             robot.rightHand.setPosition(1);
+            robot.leftUptake.setPosition(0);
+            robot.rightUptake.setPosition(1);
+            robot.intake.setPower(-1);
         }
         else {
             robot.leftHand.setPosition(.5);
             robot.rightHand.setPosition(.5);
+            robot.leftUptake.setPosition(0.5);
+            robot.rightUptake.setPosition(0.5);
+            robot.intake.setPower(0);
         }
         
         double velocityL = robot.leftArm.getVelocity();
@@ -271,6 +269,7 @@ public class Main_Teleop_Code extends OpMode {
         telemetry.addData("Target", SHOOTER_VELOCITY);
         telemetry.addData("Tag ID", tagID);
         telemetry.addData("Range: ", range);
+        telemetry.addData("Bearing: ", heading);
     }
 
 

@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.hardware.PIDCoefficients;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.PIDCoefficients;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -18,9 +18,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit
 import java.util.Locale;
 
 
-@Autonomous(name="Red_side_near_auto", group="Test Autos")
+@Autonomous(name="Blue_side_near_auto_meet3", group="Test Autos")
 //@Disabled
-public class Red_Side_Near_Auto extends LinearOpMode {
+public class Blue_Side_Near_Auto_Meet2 extends LinearOpMode {
 
     /* Declare OpMode members. */
     MaristBaseRobot2025_Quad robot   = new MaristBaseRobot2025_Quad();   
@@ -44,11 +44,11 @@ public class Red_Side_Near_Auto extends LinearOpMode {
     
     private double NEW_P = 120;
     private double NEW_I = 0;
-    private double NEW_D = 0.8;    
-
+    private double NEW_D = .8;
+     
     @Override
     public void runOpMode() {
-
+        
         /*
          * Initialize the drive system variables.
          * The init() method of the hardware class does all the work here
@@ -60,6 +60,7 @@ public class Red_Side_Near_Auto extends LinearOpMode {
         robot.leftArm.setPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidSettings);
         robot.rightArm.setPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidSettings);
         
+
         /*
         Set the odometry pod positions relative to the point that the odometry computer tracks around.
         The X pod offset refers to how far sideways from the tracking point the
@@ -112,20 +113,17 @@ public class Red_Side_Near_Auto extends LinearOpMode {
         resetRuntime();
         
         // Navigate to Points on the Field
-        Pose2D targetPos1 = new Pose2D(DistanceUnit.INCH, 35, -36, AngleUnit.DEGREES, -47);
-        Pose2D targetPos2 = new Pose2D(DistanceUnit.INCH, 39.5, -25, AngleUnit.DEGREES, 90);
-        Pose2D targetPos3 = new Pose2D(DistanceUnit.INCH, 39.5, 7.5, AngleUnit.DEGREES, 90);
-        Pose2D targetPos4 = new Pose2D(DistanceUnit.INCH, 62.5, -25, AngleUnit.DEGREES, 90);
-        Pose2D targetPos5 = new Pose2D(DistanceUnit.INCH, 62.5, 12.5, AngleUnit.DEGREES, 90);
-        Pose2D targetPos9 = new Pose2D(DistanceUnit.INCH, 35, -15, AngleUnit.DEGREES, 90);
+        Pose2D targetPos1 = new Pose2D(DistanceUnit.INCH, 20, 40, AngleUnit.DEGREES, 59);
+        Pose2D targetPos2 = new Pose2D(DistanceUnit.INCH, 39.5, 25, AngleUnit.DEGREES, -90);
+        Pose2D targetPos3 = new Pose2D(DistanceUnit.INCH, 39.5, -6, AngleUnit.DEGREES, -90);
+        Pose2D targetPos4 = new Pose2D(DistanceUnit.INCH, 62.5, 25, AngleUnit.DEGREES, -90);
+        Pose2D targetPos5 = new Pose2D(DistanceUnit.INCH, 62.5, -11.5, AngleUnit.DEGREES, -90);
+        Pose2D targetPos9 = new Pose2D(DistanceUnit.INCH, 35, 15, AngleUnit.DEGREES, -90);
         // intake 3 and go to the lever
-        Pose2D targetPos6 = new Pose2D(DistanceUnit.INCH, 87, -25, AngleUnit.DEGREES, 90);
-        Pose2D targetPos7 = new Pose2D(DistanceUnit.INCH, 87, 10, AngleUnit.DEGREES, 90);
-        Pose2D targetPos8 = new Pose2D(DistanceUnit.INCH, 55, -15, AngleUnit.DEGREES, 90);
+        Pose2D targetPos6 = new Pose2D(DistanceUnit.INCH, 87, 25, AngleUnit.DEGREES, -90);
+        Pose2D targetPos7 = new Pose2D(DistanceUnit.INCH, 87, -10, AngleUnit.DEGREES, -90);
+        Pose2D targetPos8 = new Pose2D(DistanceUnit.INCH, 20,  40, AngleUnit.DEGREES,  -90);
 
-        
-        
-        
         //actual code
         
         robot.leftArm.setVelocity(-1250);
@@ -150,9 +148,9 @@ public class Red_Side_Near_Auto extends LinearOpMode {
         delay(0.1);
         goToPose(targetPos4, 5, 3);
         goToPose(targetPos1, 5, 3.2);
+        delay(0.1);
         //shoot
         shoot();
-        goToPose(targetPos9, 5, 3);
         
         // Intake 3 more and line up by the lever
         /* 
@@ -176,10 +174,10 @@ public class Red_Side_Near_Auto extends LinearOpMode {
         robot.leftUptake.setPosition(0);
         robot.leftHand.setPosition(0);
         robot.rightHand.setPosition(1);
-        delay(3.1);
+        delay(3);
         robot.rightUptake.setPosition(.5);
         robot.leftUptake.setPosition(0.5);
-        robot.leftHand.setPosition(0.4);
+        robot.leftHand.setPosition(.4);
         robot.rightHand.setPosition(.4);
     }
     

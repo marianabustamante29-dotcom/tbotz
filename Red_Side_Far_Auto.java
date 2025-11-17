@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.hardware.PIDCoefficients;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -39,7 +41,10 @@ public class Red_Side_Far_Auto extends LinearOpMode {
     final double MAX_AUTO_SPEED = 0.6;
     final double MAX_AUTO_STRAFE = 0.6;
     final double MAX_AUTO_TURN = 0.6;
-        
+    
+    private double NEW_P = 120;
+    private double NEW_I = 0;
+    private double NEW_D = 0.8;    
 
     @Override
     public void runOpMode() {
@@ -50,7 +55,11 @@ public class Red_Side_Far_Auto extends LinearOpMode {
          */
         robot.init(hardwareMap);
         odo = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
-
+        
+        PIDCoefficients pidSettings = new PIDCoefficients(NEW_P, NEW_I, NEW_D);
+        robot.leftArm.setPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidSettings);
+        robot.rightArm.setPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidSettings);
+        
         /*
         Set the odometry pod positions relative to the point that the odometry computer tracks around.
         The X pod offset refers to how far sideways from the tracking point the
@@ -103,7 +112,7 @@ public class Red_Side_Far_Auto extends LinearOpMode {
         resetRuntime();
         
         // Navigate to Points on the Field
-        Pose2D targetPos1 = new Pose2D(DistanceUnit.INCH, -3, 0, AngleUnit.DEGREES, -20);
+        Pose2D targetPos1 = new Pose2D(DistanceUnit.INCH, -3, 0, AngleUnit.DEGREES, -22);
         Pose2D targetPos2 = new Pose2D(DistanceUnit.INCH, -28.5, 7, AngleUnit.DEGREES, 90);
         Pose2D targetPos3 = new Pose2D(DistanceUnit.INCH, -28.5, 43, AngleUnit.DEGREES, 90);
         Pose2D targetPos4 = new Pose2D(DistanceUnit.INCH, -51.5, 7, AngleUnit.DEGREES, 90);
@@ -111,8 +120,8 @@ public class Red_Side_Far_Auto extends LinearOpMode {
         
         //actual code
         
-        robot.leftArm.setVelocity(-1300);
-        robot.rightArm.setVelocity(1300);
+        robot.leftArm.setVelocity(-1450);
+        robot.rightArm.setVelocity(1450);
         goToPose(targetPos1, 5, 3);
         shoot();
         delay(0.1);
@@ -129,6 +138,7 @@ public class Red_Side_Far_Auto extends LinearOpMode {
         delay(0.1);
         goToPose(targetPos1, 5, 3);
         shoot();
+        goToPose(targetPos2, 5, 3);
 
         // Autonomous Finished
         telemetry.addData("Path", "Complete");
@@ -137,6 +147,19 @@ public class Red_Side_Far_Auto extends LinearOpMode {
     }
     
     public void shoot() {
+        robot.intake.setPower(-1);
+        robot.rightUptake.setPosition(1);
+        robot.leftUptake.setPosition(0);
+        robot.leftHand.setPosition(0);
+        robot.rightHand.setPosition(1);
+        delay(3);
+        robot.rightUptake.setPosition(.5);
+        robot.leftUptake.setPosition(0.5);
+        robot.leftHand.setPosition(0.4);
+        robot.rightHand.setPosition(.4);
+    }
+    
+    /* public void shoot() {
         
         robot.intake.setPower(-1);
         robot.rightUptake.setPosition(1);
@@ -168,6 +191,7 @@ public class Red_Side_Far_Auto extends LinearOpMode {
         robot.intake.setPower(-1);
         delay(0.1);
     }
+    */
     
     // Sample Delay Code
     // t is in seconds
