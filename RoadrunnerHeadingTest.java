@@ -50,7 +50,7 @@ public class RoadrunnerHeadingTest extends LinearOpMode {
 
                         // 270°
                         .strafeToLinearHeading(new Vector2d(0, 0), Math.toRadians(270))
-                        .waitSeconds(0.3)
+                        .waitSeconds(2)
 
                         // Diagonals (45°, 135°, 225°, 315°)
                         .strafeToLinearHeading(new Vector2d(0, 0), Math.toRadians(45))
