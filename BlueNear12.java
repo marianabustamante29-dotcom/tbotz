@@ -2,8 +2,8 @@ package org.firstinspires.ftc.teamcode;
 
 import androidx.annotation.NonNull;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.acmerobotics.dashboard.FtcDashboard;
 
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
@@ -13,6 +13,7 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.acmerobotics.roadrunner.constraints.TranslationalVelConstraint;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import com.qualcomm.robotcore.hardware.PIDCoefficients;
@@ -50,7 +51,9 @@ public class BlueNear12 extends LinearOpMode {
   
     @Override
     public void runOpMode() throws InterruptedException {
-
+      //ftc dash
+      
+        
         // Hardware mapping
         leftOut = hardwareMap.get(DcMotorEx.class, "leftArm");
         rightOut = hardwareMap.get(DcMotorEx.class, "rightArm");
@@ -66,12 +69,12 @@ public class BlueNear12 extends LinearOpMode {
         rightOut.setPIDCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, pidSettings);
 
         // Initialize drive
-        Pose2d startPose = new Pose2d(-40, 61, Math.toRadians(90));
+        Pose2d startPose = new Pose2d(-40, -61, Math.toRadians(90));
         drive = new MecanumDrive(hardwareMap, startPose);
         drive.setPoseEstimate(startPose);
 
         // Transformed shoot position
-        Vector2d shootPos = new Vector2d(34, 34);
+        Vector2d shootPos = new Vector2d(-34, -34);
   
         waitForStart();
         if (isStopRequested()) return;
@@ -90,11 +93,11 @@ public class BlueNear12 extends LinearOpMode {
         // -------- Intake 1st pile & Shoot #2 ----------
         Actions.runBlocking(
                 drive.actionBuilder(drive.getPose())
-                        .splineToLinearHeading(new Pose2d(30, 12, Math.toRadians(0)), Math.toRadians(90))
-                        .strafeToLinearHeading(new Vector2d(48, 12), Math.toRadians(0), new TranslationalVelConstraint(60))
+                        .strafeToLinearHeading(new Vector2d(-30, -12), Math.toRadians(0))
+                        .strafeToLinearHeading(new Vector2d(-48, -12), Math.toRadians(0), new TranslationalVelConstraint(60))
                         .waitSeconds(0.5)
-                        .strafeToLinearHeading(new Vector2d(50, 6), Math.toRadians(270))
-                        .strafeToConstantHeading(new Vector2d(52, 6), new TranslationalVelConstraint(65))
+                        .strafeToLinearHeading(new Vector2d(-50, -6), Math.toRadians(270))
+                        .strafeToConstantHeading(new Vector2d(-52, -6), new TranslationalVelConstraint(65))
                         .waitSeconds(0.3)
                         .strafeToLinearHeading(shootPos, Math.toRadians(135), new TranslationalVelConstraint(60))
                         .build()
@@ -104,8 +107,8 @@ public class BlueNear12 extends LinearOpMode {
         // -------- Intake 2nd pile & Shoot #3 ----------
         Actions.runBlocking(
                 drive.actionBuilder(drive.getPose())
-                        .strafeToLinearHeading(new Vector2d(-30, -11.5), Math.toRadians(0), new TranslationalVelConstraint(60))
-                        .strafeToLinearHeading(new Vector2d(-48, -11.5), Math.toRadians(0))
+                        .strafeToLinearHeading(new Vector2d(-30, 11.5), Math.toRadians(0), new TranslationalVelConstraint(60))
+                        .strafeToLinearHeading(new Vector2d(-48, 11.5), Math.toRadians(0))
                         .waitSeconds(0.3)
                         .strafeToLinearHeading(shootPos, Math.toRadians(135), new TranslationalVelConstraint(60))
                         .build()
@@ -118,7 +121,7 @@ public class BlueNear12 extends LinearOpMode {
                         .strafeToLinearHeading(new Vector2d(-30, 35), Math.toRadians(0), new TranslationalVelConstraint(60))
                         .strafeToLinearHeading(new Vector2d(-48, 35), Math.toRadians(0))
                         .waitSeconds(0.5)
-                        .strafeToLinearHeading(new Vector2d(20, -50), Math.toRadians(75), new TranslationalVelConstraint(60))
+                        .strafeToLinearHeading(new Vector2d(-20, -50), Math.toRadians(75), new TranslationalVelConstraint(60))
                         .build()
         );
         shoot();
