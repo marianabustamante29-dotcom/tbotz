@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 
 
-@Autonomous(name = "BlueNear12")
+@Autonomous(name = "Heading tests")
 
 public class RoadrunnerHeadingTest extends LinearOpMode {
 
