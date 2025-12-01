@@ -47,12 +47,9 @@ public class BlueNear12 extends LinearOpMode {
   private MecanumDrive drive;
 
   private ElapsedTime runtime = new ElapsedTime();
-  //TODO put PID!!
   
     @Override
     public void runOpMode() throws InterruptedException {
-      //ftc dash
-      
         
         // Hardware mapping
         leftOut = hardwareMap.get(DcMotorEx.class, "leftArm");
@@ -73,12 +70,12 @@ public class BlueNear12 extends LinearOpMode {
         drive = new MecanumDrive(hardwareMap, startPose);
         drive.setPoseEstimate(startPose);
 
-        // Transformed shoot position
+        // shoot position
         Vector2d shootPos = new Vector2d(-34, -34);
   
         waitForStart();
         if (isStopRequested()) return;
-  
+        //on start:
         leftOut.setVelocity(-NEARVEL);
         rightOut.setVelocity(NEARVEL);
 
@@ -130,6 +127,9 @@ public class BlueNear12 extends LinearOpMode {
         intake.setPower(OFF);
         rightBelt.setPower(OFF);
         leftBelt.setPower(OFF);
+        leftIn.setPower(OFF);
+        rightIn.setPower(OFF);
+        
 
         // Rotate heading for TeleOp setup
         Actions.runBlocking(
@@ -154,8 +154,8 @@ public class BlueNear12 extends LinearOpMode {
         intake.setPower(OFF);
         leftBelt.setPower(OFF);
         rightBelt.setPower(OFF);
-        leftIndex.setPower(IN);
-        rightIndex.setPower(-IN);
+        leftIndex.setPower(OFF);
+        rightIndex.setPower(OFF);
     }
 
     // -------- Delay helper ----------
@@ -163,6 +163,7 @@ public class BlueNear12 extends LinearOpMode {
         runtime.reset();
         while (opModeIsActive() && (runtime.seconds() < t)) {
             // Optionally update telemetry
+           
         }
     }
 }
